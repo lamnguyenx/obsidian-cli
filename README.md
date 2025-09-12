@@ -2,10 +2,11 @@
 
 Command line utility to interact with Obsidian. Notable features:
 
-* List Obsidian vaults (`obsidian ls`)
+* List Obsidian vaults (`obsidian ls -l`)
 * Open folders as vaults from the command line (`obsidian open {PATH}`)
-* Share vault settings (keybindings) between vaults via hardlinks
-* Customize the new vault template and create new vaults (`obsidian new --help`)
+* Create vaults from templates (`obsidian new {PATH}`)
+    * You can share vault settings (e.g. keybindings) with the template via hardlinks, so when you edit the template keybindings, it affects all vaults
+* Customize the new vault template and create new vaults (`obsidian template edit`)
 
 ## Installation and Usage
 

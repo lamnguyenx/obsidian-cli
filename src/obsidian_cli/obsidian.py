@@ -3,7 +3,7 @@ import secrets
 import subprocess
 import sys
 import urllib.parse
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Self
 
@@ -18,7 +18,7 @@ IntDatetime = Annotated[datetime, PlainSerializer(lambda dt: int(dt.timestamp() 
 
 class Vault(BaseModel, extra="allow"):
     path: Path
-    date_added: IntDatetime = Field(alias="ts")
+    last_opened: IntDatetime = Field(alias="ts")
     open: bool = False
 
     @staticmethod
@@ -46,6 +46,21 @@ class ObsidianConfig(BaseModel, extra="allow"):
             if vault.path == path:
                 return vault_id
         return None
+
+    def ensure_path_is_vault(self, path: Path) -> str:
+        """
+        Registers the given path as an Obsidian vault, if necessary.
+
+        :return: The vault ID.
+        """
+        obsidian_config = ObsidianConfig.load()
+        vault_id = obsidian_config.find_vault_id_by_path(path)
+        if vault_id is None:
+            local_time_now = datetime.now(tz=UTC).astimezone()
+            vault_id = Vault.generate_id()
+            obsidian_config.vaults[vault_id] = Vault(path=path, ts=local_time_now)
+            obsidian_config.save()
+        return vault_id
 
 
 def _open_url(url: str) -> None:
