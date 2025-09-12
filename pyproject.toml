@@ -1,0 +1,48 @@
+[project]
+name = "obsidian-cli"
+version = "0.1.0"
+description = "Command line utility to interact with Obsidian, providing much needed features."
+readme = "README.md"
+authors = [
+    { name = "Bip901", email = "74911767+Bip901@users.noreply.github.com" },
+]
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = ["platformdirs>=4.4.0", "pydantic>=2.11.7", "typer>=0.17.4"]
+
+[project.scripts]
+obsidian = "obsidian_cli.cli.__main__:app"
+
+[project.urls]
+"Homepage" = "https://github.com/Bip901/obsidian-cli"
+
+[build-system]
+requires = ["uv_build>=0.8.13,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "F",    # pyflakes
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "RUF",  # ruff
+    "I",    # isort
+    "N",    # pep8-naming
+    "D417", # pydocstyle: missing argument description
+    "UP",   # pyupgrade
+    "ANN",  # flake8-annotations
+    "B",    # flake8-bugbear
+    "DTZ",  # flake8-datetimez
+    "YTT",  # flake8-2020
+    "EXE",  # flake8-executable
+] # https://docs.astral.sh/ruff/rules/
+
+[tool.mypy]
+strict = true
