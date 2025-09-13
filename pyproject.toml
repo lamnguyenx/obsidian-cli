@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [project.scripts]
-obsidian = "obsidian_cli.__main__:main"
+obsidian = "obsidian_cli.__main__:app"
 
 [project.urls]
 "Homepage" = "https://github.com/Bip901/obsidian-cli"
