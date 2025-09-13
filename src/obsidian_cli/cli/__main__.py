@@ -1,17 +1,15 @@
-import shlex
 import sys
 from pathlib import Path
 from typing import Annotated, Never
 
-import tabulate
 import typer
 
-from .. import DEFAULT_VAULT_TEMPLATE, ObsidianConfig, create_vault, get_all_templates
+from .. import ObsidianConfig, vault_templates
 from .. import open_vault as open_vault_in_obsidian
-from .templates import app as templates_app
+from . import autocomplete, templates
 
 app = typer.Typer(no_args_is_help=True)
-app.add_typer(templates_app)
+app.add_typer(templates.app)
 
 
 @app.command(name="ls")
@@ -25,6 +23,8 @@ def list_vaults(
     vaults = list((vault_id, vault) for vault_id, vault in obsidian_config.vaults.items())
     vaults.sort(key=lambda tup: tup[1].last_opened, reverse=True)
     if long:
+        import tabulate
+
         typer.echo(
             tabulate.tabulate(
                 (
@@ -37,35 +37,6 @@ def list_vaults(
     else:
         for _vault_id, vault in vaults:
             typer.echo(vault.path)
-
-
-def _complete_vault(incomplete: str, include_local_files: bool) -> list[tuple[str, str]]:
-    allow_dotfiles = incomplete.startswith(".")
-    results: list[tuple[str, str]] = []
-    if include_local_files:
-        results.extend(
-            (file.name, "")
-            for file in Path().iterdir()
-            if file.is_dir() and (allow_dotfiles or not file.name.startswith("."))
-        )
-    results.extend((str(vault.path), vault_id) for vault_id, vault in ObsidianConfig.load().vaults.items())
-    incomplete = incomplete.casefold()
-    for i in range(len(results) - 1, -1, -1):
-        item = results[i]
-        quoted_item = shlex.quote(item[0])
-        if item[0].casefold().startswith(incomplete) or quoted_item.casefold().startswith(incomplete):
-            results[i] = (quoted_item, item[1])
-        else:
-            results.pop(i)
-    return results
-
-
-def _complete_vaults(incomplete: str) -> list[tuple[str, str]]:
-    return _complete_vault(incomplete, include_local_files=False)
-
-
-def _complete_vaults_and_local_files(incomplete: str) -> list[tuple[str, str]]:
-    return _complete_vault(incomplete, include_local_files=True)
 
 
 def _exit_with_error(message: str, exit_code: int = 1) -> Never:
@@ -81,9 +52,16 @@ def open_vault(
             help="The vault directory.",
             file_okay=False,
             exists=True,
-            autocompletion=_complete_vaults_and_local_files,
+            autocompletion=autocomplete.complete_vaults_and_local_files,
         ),
     ],
+    file: Annotated[
+        str | None,
+        typer.Argument(
+            help="Open this file within the vault. A relative path from the vault root.",
+            autocompletion=autocomplete.complete_vault_file,
+        ),
+    ] = None,
 ) -> None:
     """
     Opens the given directory as an Obsidian vault, registering it if necessary.
@@ -95,7 +73,7 @@ def open_vault(
 @app.command(name="rm")
 def remove_vault(
     path_or_id: Annotated[
-        str, typer.Argument(help="The path to the vault, or the vault ID.", autocompletion=_complete_vaults)
+        str, typer.Argument(help="The path to the vault, or the vault ID.", autocompletion=autocomplete.complete_vaults)
     ],
 ) -> None:
     """
@@ -118,9 +96,9 @@ def new_vault(
         str,
         typer.Option(
             help="The name of the template to use when creating the vault. Defaults to the 'default' template.",
-            autocompletion=get_all_templates,
+            autocompletion=vault_templates.get_all_templates,
         ),
-    ] = DEFAULT_VAULT_TEMPLATE,
+    ] = vault_templates.DEFAULT_VAULT_TEMPLATE,
     allow_non_empty: Annotated[
         bool, typer.Option("--allow-non-empty", help="Allow creating the vault in a non-empty directory.")
     ] = False,
@@ -150,7 +128,7 @@ def new_vault(
     else:
         _exit_with_error(f"Can't create vault within non-existent parent directory '{path.parent}'")
 
-    create_vault(path, template)
+    vault_templates.create_vault(path, template)
     if should_open_vault:
         open_vault(path)
 
