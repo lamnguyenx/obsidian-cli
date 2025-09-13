@@ -16,6 +16,7 @@ Python 3.11 or newer required.
 
 ```shell
 uv tool install obsidian-cli
+obsidian --install-completion
 obsidian --help
 ```
 
