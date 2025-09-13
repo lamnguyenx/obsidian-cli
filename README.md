@@ -1,5 +1,7 @@
 # Obsidian CLI
 
+[![PyPI Package](https://img.shields.io/pypi/v/obsidian-cli.svg)](https://pypi.org/project/obsidian-cli)
+
 Command line utility to interact with Obsidian. Notable features:
 
 * List Obsidian vaults (`obsidian ls -l`)
