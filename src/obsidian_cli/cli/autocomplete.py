@@ -1,6 +1,9 @@
 import shlex
+from collections.abc import Callable
 from pathlib import Path
 from typing import TypeVar
+
+import typer
 
 from ..obsidian import ObsidianConfig
 
@@ -34,25 +37,37 @@ def _get_vaults_autocompletion() -> list[tuple[str, str]]:
     return [(str(vault.path), vault_id) for vault_id, vault in ObsidianConfig.load().vaults.items()]
 
 
-def _get_local_files_autocompletion(incomplete: str) -> list[tuple[str, str]]:
-    allow_dotfiles = incomplete.startswith(".")
-    results: list[tuple[str, str]] = [
-        (file.name, "")
-        for file in Path().iterdir()
-        if file.is_dir() and (allow_dotfiles or not file.name.startswith("."))
+def _get_local_files_autocompletion(
+    incomplete: str, *, predicate: Callable[[Path], bool] | None = None, from_root: Path | None = None
+) -> list[tuple[str, str]]:
+    incomplete_split = shlex.split(incomplete)
+    incomplete = incomplete_split[0] if len(incomplete_split) == 1 else incomplete
+    if from_root is None:
+        from_root = Path()
+    path_prefix = Path(from_root, incomplete)
+    search_root = path_prefix if path_prefix.exists() and path_prefix.is_dir() else from_root
+    allow_dotfiles = incomplete.startswith(".") or from_root.name.startswith(".")
+    return [
+        (str(file.relative_to(from_root)) if file.is_relative_to(from_root) else file.name, "")
+        for file in search_root.iterdir()
+        if (predicate is None or predicate(file)) and (allow_dotfiles or not file.name.startswith("."))
     ]
-    return results
 
 
 def complete_vaults(incomplete: str) -> list[tuple[str, str]]:
     return quote_and_filter_autocomplete_results(incomplete, _get_vaults_autocompletion())
 
 
-def complete_vaults_and_local_files(incomplete: str) -> list[tuple[str, str]]:
+def complete_vaults_and_local_dirs(incomplete: str) -> list[tuple[str, str]]:
     return quote_and_filter_autocomplete_results(
-        incomplete, _get_vaults_autocompletion() + _get_local_files_autocompletion(incomplete)
+        incomplete, _get_vaults_autocompletion() + _get_local_files_autocompletion(incomplete, predicate=Path.is_dir)
     )
 
 
-def complete_vault_file(incomplete: str) -> list[tuple[str, str]]:
-    return []
+def complete_vault_file(ctx: typer.Context, incomplete: str) -> list[tuple[str, str]]:
+    vault_path: str | None = ctx.params.get("path")
+    if vault_path is None:
+        return []
+    return quote_and_filter_autocomplete_results(
+        incomplete, _get_local_files_autocompletion(incomplete, from_root=Path(vault_path))
+    )

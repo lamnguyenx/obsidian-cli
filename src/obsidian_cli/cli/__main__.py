@@ -20,7 +20,7 @@ def list_vaults(
     Lists directories registered as Obsidian vaults.
     """
     obsidian_config = ObsidianConfig.load()
-    vaults = list((vault_id, vault) for vault_id, vault in obsidian_config.vaults.items())
+    vaults = list(obsidian_config.vaults.items())
     vaults.sort(key=lambda tup: tup[1].last_opened, reverse=True)
     if long:
         import tabulate
@@ -52,7 +52,7 @@ def open_vault(
             help="The vault directory.",
             file_okay=False,
             exists=True,
-            autocompletion=autocomplete.complete_vaults_and_local_files,
+            autocompletion=autocomplete.complete_vaults_and_local_dirs,
         ),
     ],
     file: Annotated[
@@ -67,7 +67,7 @@ def open_vault(
     Opens the given directory as an Obsidian vault, registering it if necessary.
     """
     vault_id = ObsidianConfig.load().ensure_path_is_vault(path)
-    open_vault_in_obsidian(vault_id)
+    open_vault_in_obsidian(vault_id, file)
 
 
 @app.command(name="rm")
