@@ -4,7 +4,7 @@ from typing import Annotated, Never
 
 import typer
 
-from .. import ObsidianConfig, vault_templates
+from .. import ObsidianConfig, SettingsCreationMode, vault_templates
 from .. import open_vault as open_vault_in_obsidian
 from . import autocomplete, templates
 
@@ -105,6 +105,7 @@ def new_vault(
     should_open_vault: Annotated[
         bool, typer.Option("--open/--no-open", help="Whether to open the new vault in Obsidian upon creation.")
     ] = True,
+    settings_creation_mode: Annotated[SettingsCreationMode, typer.Option()] = SettingsCreationMode.hardlink,
 ) -> None:
     """
     Creates a new Obsidian vault at the given path.
@@ -128,7 +129,7 @@ def new_vault(
     else:
         _exit_with_error(f"Can't create vault within non-existent parent directory '{path.parent}'")
 
-    vault_templates.create_vault(path, template)
+    vault_templates.create_vault(path, template, settings_creation_mode)
     if should_open_vault:
         open_vault(path)
 

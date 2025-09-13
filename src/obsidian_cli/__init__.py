@@ -1,10 +1,4 @@
 from .obsidian import ObsidianConfig, Vault, open_vault
-from .vault_templates import create_vault, get_all_templates
+from .vault_templates import SettingsCreationMode, create_vault, get_all_templates
 
-__all__ = [
-    "ObsidianConfig",
-    "Vault",
-    "create_vault",
-    "get_all_templates",
-    "open_vault",
-]
+__all__ = ["ObsidianConfig", "SettingsCreationMode", "Vault", "create_vault", "get_all_templates", "open_vault"]

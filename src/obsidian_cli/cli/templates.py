@@ -14,8 +14,16 @@ def info() -> None:
     """
     templates = vault_templates.get_all_templates()
     typer.echo(f"Found {len(templates)} template(s) at {vault_templates.VAULT_TEMPLATES_DIR}")
-    for template in templates:
-        typer.echo(template)
+    if len(templates):
+        typer.echo()
+        import tabulate
+
+        typer.echo(
+            tabulate.tabulate(
+                [(template, vault_templates.get_hardlink_count(template)) for template in templates],
+                headers=("Name", "# Hardlinked Vaults"),
+            )
+        )
 
 
 @app.command()
