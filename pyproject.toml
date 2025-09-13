@@ -1,6 +1,6 @@
 [project]
 name = "obsidian-cli"
-version = "1.0.0"
+version = "1.0.1"
 description = "Command line utility to interact with Obsidian, providing much needed features."
 readme = "README.md"
 authors = [
