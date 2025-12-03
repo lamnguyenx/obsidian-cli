@@ -42,6 +42,7 @@ class ObsidianConfig(BaseModel, extra="allow"):
 
     def find_vault_id_by_path(self, path: Path) -> str | None:
         """Returns the id of the vault with the given path, or None if not found."""
+        path = path.resolve()
         for vault_id, vault in self.vaults.items():
             if vault.path == path:
                 return vault_id
@@ -53,6 +54,7 @@ class ObsidianConfig(BaseModel, extra="allow"):
 
         :return: The vault ID.
         """
+        path = path.resolve()
         obsidian_config = ObsidianConfig.load()
         vault_id = obsidian_config.find_vault_id_by_path(path)
         if vault_id is None:
